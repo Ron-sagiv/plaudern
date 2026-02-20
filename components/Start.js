@@ -1,153 +1,121 @@
-import { useState } from 'react';
+import { signInAnonymously } from 'firebase/auth';
+import React, { useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  Button,
-  TextInput,
+  Dimensions,
   ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
   TouchableOpacity,
+  View,
 } from 'react-native';
+import BackgroundImage from '../assets/images/bg.png';
 
-const Start = ({ navigation }) => {
+const colors = ['#090C08', '#474056', '#8A95A5', '#B9C6AE'];
+const { width, height } = Dimensions.get('window');
+
+const Start = ({ navigation, auth }) => {
   const [name, setName] = useState('');
-  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(colors[0]);
 
   return (
-    <View style={styles.container}>
-      {/* Fullscreen background image */}
-      <ImageBackground
-        source={require('../assets/bg.jpg')}
-        style={styles.backgroundBox}
-        resizeMode="cover"
+    <ImageBackground
+      source={BackgroundImage}
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1, width: '100%' }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <Text style={styles.welcomeText}>Plaudern</Text>
-      </ImageBackground>
+        <View style={styles.container}>
+          <View style={styles.box}>
+            <Text style={styles.label}>Your Name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Type here..."
+              placeholderTextColor="rgba(117,112,131,0.5)"
+              value={name}
+              onChangeText={setName}
+            />
 
-      <View style={styles.foreGroundBox}>
-        {/* Foreground box, with text color similar to #757083 with 50% opacity, as Android doesn't seem to support opacity on text inputs */}
-        <TextInput
-          style={styles.textInput}
-          value={name}
-          onChangeText={setName}
-          placeholder="Your name"
-          placeholderTextColor="#BDBAC1"
-        />
-        <View style={styles.colorContainer}>
-          <Text style={styles.colorLabel}>Choose Background Color:</Text>
-          <View style={styles.colorOptions}>
-            {['#090C08', '#474056', '#8A95A5', '#B9C6AE'].map((color) => (
-              <TouchableOpacity
-                key={color}
-                style={[
-                  styles.colorCircle,
-                  { backgroundColor: color },
-                  selectedColor === color ? styles.selectedCircle : null,
-                ]}
-                onPress={() => setSelectedColor(color)}
-              />
-            ))}
+            <Text style={styles.label}>Choose Background Color:</Text>
+            <View style={styles.colorContainer}>
+              {colors.map((color) => (
+                <TouchableOpacity
+                  key={color}
+                  style={[
+                    styles.colorCircle,
+                    { backgroundColor: color },
+                    selectedColor === color && styles.selectedColor,
+                  ]}
+                  onPress={() => setSelectedColor(color)}
+                />
+              ))}
+            </View>
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() =>
+                navigation.navigate('Chat', {
+                  name,
+                  backgroundColor: selectedColor,
+                })
+              }
+            >
+              <Text style={styles.buttonText}>Start Chatting</Text>
+            </TouchableOpacity>
           </View>
         </View>
-        <TouchableOpacity
-          style={styles.customButton}
-          onPress={() =>
-            navigation.navigate('Chat', {
-              name,
-              backgroundColor: selectedColor,
-            })
-          }
-        >
-          <Text style={styles.customButtonText}>Start Chatting</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  background: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   container: {
     flex: 1,
-  },
-  backgroundBox: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
-  },
-  welcomeText: {
-    color: 'white',
-    fontSize: 45,
-    fontWeight: 'bold',
-    justifyContent: 'center',
-    textAlign: 'center',
-    marginBottom: 450,
-  },
-  foreGroundBox: {
-    position: 'absolute',
-    bottom: 55,
-    width: '90%',
-    height: '40%', // lower third
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    padding: 20,
-    elevation: 5, // adds shadow on Android
-  },
-  textInput: {
     width: '100%',
-    padding: 15,
+    paddingBottom: 20,
+  },
+  title: { fontSize: 45, fontWeight: '600', color: '#fff', marginBottom: 40 },
+  box: {
+    width: width * 0.88,
+    height: height * 0.44,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    justifyContent: 'space-around',
+  },
+  label: { fontSize: 16, fontWeight: '300', color: '#333', marginBottom: 5 },
+  input: {
+    width: '100%',
+    padding: 10,
     borderWidth: 1,
+    borderRadius: 5,
     borderColor: '#757083',
-    fontSize: 16,
-    fontWeight: '300',
-    color: '#757083',
-    marginTop: 0,
-    marginBottom: 10, // set up the distance in between the input and other elements below
-    alignSelf: 'center',
+    marginBottom: 15,
+    color: '#000',
   },
   colorContainer: {
-    marginTop: 20,
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  colorLabel: {
-    fontSize: 16,
-    fontWeight: '300',
-    color: '#757083',
-    marginBottom: 10,
-  },
-  colorOptions: {
     flexDirection: 'row',
-    justifyContent: 'center', // center them horizontally
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  colorCircle: { width: 50, height: 50, borderRadius: 25 },
+  selectedColor: { borderWidth: 3, borderColor: '#000' },
+  button: {
+    backgroundColor: '#757083',
+    padding: 15,
+    borderRadius: 5,
     alignItems: 'center',
-    marginHorizontal: 10,
-    marginTop: 10,
   },
-  colorCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginHorizontal: 10,
-  },
-  selectedCircle: {
-    borderWidth: 3,
-    borderColor: '#757083',
-  },
-  customButton: {
-    backgroundColor: '#757083', // works on both iOS & Android
-    paddingVertical: 17,
-    paddingHorizontal: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10,
-  },
-  customButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });
 
 export default Start;
