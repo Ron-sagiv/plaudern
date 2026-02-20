@@ -1,11 +1,20 @@
-import { useState, useEffect } from 'react';
-import { Platform } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
 import { Bubble, GiftedChat } from 'react-native-gifted-chat';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 const Chat = ({ route, navigation }) => {
   const { name, backgroundColor } = route.params;
   const [messages, setMessages] = useState([]);
+  const [inputText, setInputText] = useState('');
 
   const renderBubble = (props) => {
     return (
@@ -23,8 +32,23 @@ const Chat = ({ route, navigation }) => {
     );
   };
 
-  const onSend = (newMessages) => {
-    setMessages((prev) => GiftedChat.append(prev, newMessages));
+  const onSend = useCallback((newMessages = []) => {
+    setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessages));
+  }, []);
+
+  const handleManualSend = () => {
+    const trimmed = inputText.trim();
+    if (!trimmed) return;
+
+    onSend([
+      {
+        _id: Date.now(),
+        text: trimmed,
+        createdAt: new Date(),
+        user: { _id: 1, name: name || 'You' },
+      },
+    ]);
+    setInputText('');
   };
 
   useEffect(() => {
@@ -47,27 +71,78 @@ const Chat = ({ route, navigation }) => {
         system: true,
       },
     ]);
-  }, []);
+  }, [name, navigation]);
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor }}
-      accessible={false}
-      importantForAccessibility="no"
-    >
-      {/* SafeAreaView allows for the keyboard to not hide the text input */}
+    <SafeAreaView style={[styles.container, { backgroundColor }]}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 86 : 0}
+      >
+        <View style={styles.messagesWrap}>
+          <GiftedChat
+            messages={messages}
+            user={{ _id: 1 }}
+            renderBubble={renderBubble}
+            renderInputToolbar={() => null}
+            minInputToolbarHeight={0}
+            listViewProps={{ keyboardShouldPersistTaps: 'handled' }}
+          />
+        </View>
 
-      {/* Chat library allowing messages to come and go */}
-      <GiftedChat
-        messages={messages}
-        onSend={(messages) => onSend(messages)}
-        user={{ _id: 1 }}
-        keyboardShouldPersistTaps="handled"
-        keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
-        renderBubble={renderBubble}
-      />
+        <View style={styles.inputBar}>
+          <TextInput
+            style={styles.input}
+            value={inputText}
+            onChangeText={setInputText}
+            placeholder="Type a message..."
+            placeholderTextColor="rgba(117,112,131,0.6)"
+            returnKeyType="send"
+            onSubmitEditing={handleManualSend}
+          />
+          <TouchableOpacity style={styles.sendButton} onPress={handleManualSend}>
+            <Text style={styles.sendButtonText}>Send</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  messagesWrap: { flex: 1 },
+  inputBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
+    backgroundColor: '#fff',
+  },
+  input: {
+    flex: 1,
+    minHeight: 40,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    color: '#111',
+    backgroundColor: '#fff',
+    marginRight: 10,
+  },
+  sendButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  sendButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+});
 
 export default Chat;
