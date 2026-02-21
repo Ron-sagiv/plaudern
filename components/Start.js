@@ -1,6 +1,7 @@
 import { signInAnonymously } from 'firebase/auth';
 import React, { useState } from 'react';
 import {
+  Alert,
   Dimensions,
   ImageBackground,
   KeyboardAvoidingView,
@@ -20,11 +21,29 @@ const Start = ({ navigation, auth }) => {
   const [name, setName] = useState('');
   const [selectedColor, setSelectedColor] = useState(colors[0]);
 
+  const signInUser = () => {
+    signInAnonymously(auth)
+      .then((res) => {
+        navigation.navigate('Chat', {
+          userID: res.user.uid,
+          name: name,
+          backgroundColor: selectedColor,
+        });
+        Alert.alert('Signed in successfully');
+      })
+      .catch((err) => {
+        console.log(err);
+        Alert.alert('Sign-in failed', `${err.code}: ${err.message}`);
+      });
+  };
+
   return (
     <ImageBackground
       source={BackgroundImage}
       style={styles.background}
       resizeMode="cover"
+      accessible={false}
+      importantForAccessibility="no"
     >
       <KeyboardAvoidingView
         style={{ flex: 1, width: '100%' }}
@@ -39,6 +58,7 @@ const Start = ({ navigation, auth }) => {
               placeholderTextColor="rgba(117,112,131,0.5)"
               value={name}
               onChangeText={setName}
+              accessibilityLabel="Name input field"
             />
 
             <Text style={styles.label}>Choose Background Color:</Text>
@@ -46,6 +66,9 @@ const Start = ({ navigation, auth }) => {
               {colors.map((color) => (
                 <TouchableOpacity
                   key={color}
+                  accessible={true}
+                  accessibilityLabel={`Select ${color} background`}
+                  accessibilityHint="Sets the background color for the chat screen"
                   style={[
                     styles.colorCircle,
                     { backgroundColor: color },
@@ -58,12 +81,10 @@ const Start = ({ navigation, auth }) => {
 
             <TouchableOpacity
               style={styles.button}
-              onPress={() =>
-                navigation.navigate('Chat', {
-                  name,
-                  backgroundColor: selectedColor,
-                })
-              }
+              accessible={true}
+              accessibilityLabel="Start Chatting"
+              accessibilityHint="Button redirecting to the chat"
+              onPress={signInUser}
             >
               <Text style={styles.buttonText}>Start Chatting</Text>
             </TouchableOpacity>
