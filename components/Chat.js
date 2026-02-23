@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Bubble, GiftedChat } from 'react-native-gifted-chat';
+import { Bubble, GiftedChat, InputToolbar } from 'react-native-gifted-chat';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -43,18 +43,6 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
             backgroundColor: 'rgb(221, 247, 245)',
           },
         }}
-      />
-    );
-  };
-
-  const renderCustomActions = (props) => {
-    return (
-      <CustomActions
-        storage={storage}
-        userID={userID}
-        userName={name}
-        onSend={(messages) => onSend(messages)}
-        {...props}
       />
     );
   };
@@ -181,7 +169,6 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
             renderInputToolbar={() => null}
             minInputToolbarHeight={0}
             listViewProps={{ keyboardShouldPersistTaps: 'handled' }}
-            renderActions={renderCustomActions}
             renderCustomView={renderCustomView}
             renderMessageImage={renderMessageImage}
           />
@@ -189,6 +176,12 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
 
         {isConnected && (
           <View style={styles.inputBar}>
+            <CustomActions
+              storage={storage}
+              userID={userID}
+              userName={name}
+              onSend={(messages) => onSend(messages)}
+            />
             <TextInput
               style={styles.input}
               value={inputText}
@@ -241,7 +234,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     color: '#111',
     backgroundColor: '#fff',
-    marginRight: 10,
+    marginHorizontal: 10,
   },
   sendButton: {
     backgroundColor: '#007AFF',

@@ -14,6 +14,7 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import Chat from './components/Chat';
 import Start from './components/Start';
 import { useEffect } from 'react';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 
 const Stack = createNativeStackNavigator();
 
@@ -48,22 +49,24 @@ export default function App() {
   }, [netInfo.isConnected]);
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Start">
-        <Stack.Screen name="Start">
-          {(props) => <Start db={db} app={app} auth={auth} {...props} />}
-        </Stack.Screen>
-        <Stack.Screen name="Chat">
-          {(props) => (
-            <Chat
-              db={db}
-              storage={storage}
-              isConnected={netInfo.isConnected}
-              {...props}
-            />
-          )}
-        </Stack.Screen>
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ActionSheetProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Start">
+          <Stack.Screen name="Start">
+            {(props) => <Start db={db} app={app} auth={auth} {...props} />}
+          </Stack.Screen>
+          <Stack.Screen name="Chat">
+            {(props) => (
+              <Chat
+                db={db}
+                storage={storage}
+                isConnected={netInfo.isConnected}
+                {...props}
+              />
+            )}
+          </Stack.Screen>
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ActionSheetProvider>
   );
 }

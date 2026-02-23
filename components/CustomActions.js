@@ -60,6 +60,7 @@ const CustomActions = ({
   const takePhoto = async () => {
     let permissions = await ImagePicker.requestCameraPermissionsAsync();
     if (permissions?.granted) {
+      Alert.alert('🤑 Upgrade Firebase to avail Storage! $$$');
       let result = await ImagePicker.launchCameraAsync();
       if (!result.canceled) await uploadAndSendImage(result.assets[0].uri);
       else Alert.alert("Permissions haven't been granted.");
@@ -71,6 +72,7 @@ const CustomActions = ({
     const newUploadRef = ref(storage, uniqueRefString);
     const response = await fetch(imageURI);
     const blob = await response.blob();
+    Alert.alert('🤑 Upgrade Firebase to avail Storage! $$$');
     uploadBytes(newUploadRef, blob).then(async (snapshot) => {
       const imageURL = await getDownloadURL(snapshot.ref);
       onSend([
