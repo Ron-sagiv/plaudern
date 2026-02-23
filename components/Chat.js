@@ -9,6 +9,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Modal,
+  Image,
 } from 'react-native';
 import {
   collection,
@@ -18,11 +20,16 @@ import {
   orderBy,
 } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CustomActions from './CustomActions';
+import MapView from 'react-native-maps';
+import ImageViewer from 'react-native-image-zoom-viewer';
 
-const Chat = ({ route, navigation, db, isConnected }) => {
-  const { name, backgroundColor } = route.params;
+const Chat = ({ route, navigation, db, storage, isConnected }) => {
+  const { name, userID, backgroundColor } = route.params;
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const renderBubble = (props) => {
     return (
@@ -37,6 +44,59 @@ const Chat = ({ route, navigation, db, isConnected }) => {
           },
         }}
       />
+    );
+  };
+
+  const renderCustomActions = (props) => {
+    return (
+      <CustomActions
+        storage={storage}
+        userID={userID}
+        userName={name}
+        onSend={(messages) => onSend(messages)}
+        {...props}
+      />
+    );
+  };
+
+  const renderCustomView = (props) => {
+    const { currentMessage } = props;
+    if (currentMessage.location) {
+      return (
+        <MapView
+          style={{
+            width: 150,
+            height: 100,
+            borderRadius: 13,
+            margin: 3,
+          }}
+          region={{
+            latitude: currentMessage.location.latitude,
+            longitude: currentMessage.location.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        />
+      );
+    }
+    return null;
+  };
+
+  // Render message image with modal for full-screen view on tap
+  const renderMessageImage = (props) => {
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          setSelectedImage(props.currentMessage.image);
+          setModalVisible(true);
+        }}
+      >
+        <Image
+          source={{ uri: props.currentMessage.image }}
+          style={{ width: 200, height: 200, borderRadius: 10, margin: 3 }}
+          resizeMode="cover"
+        />
+      </TouchableOpacity>
     );
   };
 
@@ -121,6 +181,9 @@ const Chat = ({ route, navigation, db, isConnected }) => {
             renderInputToolbar={() => null}
             minInputToolbarHeight={0}
             listViewProps={{ keyboardShouldPersistTaps: 'handled' }}
+            renderActions={renderCustomActions}
+            renderCustomView={renderCustomView}
+            renderMessageImage={renderMessageImage}
           />
         </View>
 
@@ -144,6 +207,15 @@ const Chat = ({ route, navigation, db, isConnected }) => {
           </View>
         )}
       </KeyboardAvoidingView>
+      {/* Fullscreen Image Viewer Modal */}
+      <Modal visible={modalVisible} transparent={true}>
+        <ImageViewer
+          imageUrls={[{ url: selectedImage }]}
+          onClick={() => setModalVisible(false)}
+          enableSwipeDown
+          onSwipeDown={() => setModalVisible(false)}
+        />
+      </Modal>
     </SafeAreaView>
   );
 };

@@ -2,6 +2,7 @@ import { Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { getApp, getApps, initializeApp } from 'firebase/app';
+import { getStorage } from 'firebase/storage';
 import { getAuth } from 'firebase/auth';
 import {
   getFirestore,
@@ -32,6 +33,9 @@ export default function App() {
   // Initialize Cloud Firestore and get a reference to the service
   const db = getFirestore(app);
 
+  // Firebase storage to store images etc
+  const storage = getStorage(app);
+
   const netInfo = useNetInfo();
 
   useEffect(() => {
@@ -51,7 +55,12 @@ export default function App() {
         </Stack.Screen>
         <Stack.Screen name="Chat">
           {(props) => (
-            <Chat db={db} isConnected={netInfo.isConnected} {...props} />
+            <Chat
+              db={db}
+              storage={storage}
+              isConnected={netInfo.isConnected}
+              {...props}
+            />
           )}
         </Stack.Screen>
       </Stack.Navigator>
